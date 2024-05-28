@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:background="#dfcdab">
+
+
+    <TextView
+        android:id="@+id/SearchId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:gravity="center"
+        android:text="Все свойства"
+        android:textColor="#000000"
+        android:textSize="15dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Top" />
+
+    <TextView
+        android:id="@+id/ArrowRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-5dp"
+        android:layout_marginEnd="100dp"
+        android:clickable="true"
+        android:gravity="center"
+        android:onClick="onNextStarClick"
+        android:text="▶"
+        android:textColor="#000000"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Top" />
+
+    <TextView
+        android:id="@+id/ArrowLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="-5dp"
+        android:clickable="true"
+        android:gravity="center"
+        android:onClick="onPreviousStarClick"
+        android:text="◀"
+        android:textColor="#000000"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Top"
+        tools:ignore="TextSizeCheck" />
+
+    <TextView
+        android:id="@+id/Prop1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="-100dp"
+        android:gravity="center"
+        android:text="✦"
+        android:textColor="#F36"
+        android:textSize="15dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/SearchId"
+        tools:ignore="TextSizeCheck" />
+
+    <TextView
+        android:id="@+id/Prop2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="-60dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:text="✦"
+        android:textColor="#000000"
+        android:textSize="11dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/SearchId"
+        tools:ignore="TextSizeCheck" />
+
+    <TextView
+        android:id="@+id/Prop3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="-20dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:text="✦"
+        android:textColor="#000000"
+        android:textSize="11dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/SearchId"
+        tools:ignore="TextSizeCheck" />
+
+    <TextView
+        android:id="@+id/Prop4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:text="✦"
+        android:textColor="#000000"
+        android:textSize="11dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/SearchId"
+        tools:ignore="TextSizeCheck" />
+
+    <TextView
+        android:id="@+id/Prop5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:text="✦"
+        android:textColor="#000000"
+        android:textSize="11dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/SearchId"
+        tools:ignore="TextSizeCheck" />
+
+    <TextView
+        android:id="@+id/Prop6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:text="✦"
+        android:textColor="#000000"
+        android:textSize="11dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/SearchId"
+        tools:ignore="TextSizeCheck" />
+
+
+    <GridLayout
+        android:id="@+id/g1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:alignmentMode="alignMargins"
+        android:columnCount="5"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/SearchId">
+
+        <ImageView
+            android:id="@+id/i1"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:clickable="true"
+            android:onClick="openHero"
+            app:srcCompat="@drawable/p1" />
+
+        <ImageView
+            android:id="@+id/i2"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:clickable="true"
+            android:onClick="openHero"
+            app:srcCompat="@drawable/p2" />
+
+        <ImageView
+            android:id="@+id/i3"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:clickable="true"
+            android:onClick="openHero"
+            app:srcCompat="@drawable/p3" />
+
+        <ImageView
+            android:id="@+id/i4"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:clickable="true"
+            android:onClick="openHero"
+            app:srcCompat="@drawable/p4" />
+
+        <ImageView
+            android:id="@+id/i5"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:clickable="true"
+            android:onClick="openHero"
+            app:srcCompat="@drawable/p5" />
+
+    </GridLayout>
+
+    <GridLayout
+        android:id="@+id/g2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-12dp"
+        android:alignmentMode="alignMargins"
+        android:columnCount="5"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/g1">
+
+        <ImageView
+            android:id="@+id/i6"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p6" />
+
+        <ImageView
+            android:id="@+id/i7"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p7" />
+
+        <ImageView
+            android:id="@+id/i8"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p8" />
+
+        <ImageView
+            android:id="@+id/i9"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p9" />
+
+        <ImageView
+            android:id="@+id/i10"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            app:srcCompat="@drawable/p10"
+            android:onClick="openHero"
+            android:clickable="true"/>
+    </GridLayout>
+
+    <GridLayout
+        android:id="@+id/g3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-12dp"
+        android:alignmentMode="alignMargins"
+        android:columnCount="5"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/g2">
+
+        <ImageView
+            android:id="@+id/i11"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p11" />
+
+        <ImageView
+            android:id="@+id/i12"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p12" />
+
+        <ImageView
+            android:id="@+id/i13"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p13" />
+
+        <ImageView
+            android:id="@+id/i14"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p14" />
+
+        <ImageView
+            android:id="@+id/i15"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p15" />
+    </GridLayout>
+
+    <GridLayout
+        android:id="@+id/g4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-12dp"
+        android:alignmentMode="alignMargins"
+        android:columnCount="5"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/g3">
+
+        <ImageView
+            android:id="@+id/i16"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p16" />
+
+        <ImageView
+            android:id="@+id/i17"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p17" />
+
+        <ImageView
+            android:id="@+id/i18"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p18" />
+
+        <ImageView
+            android:id="@+id/i19"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginRight="4dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p19" />
+
+        <ImageView
+            android:id="@+id/i20"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:onClick="openHero"
+            android:clickable="true"
+            app:srcCompat="@drawable/p20" />
+    </GridLayout>
+
+    <ImageView
+        android:id="@+id/Top"
+        android:layout_width="410dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="-30dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/top" />
+
+
+    <TextView
+        android:id="@+id/loginid"
+        android:layout_width="130dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="9dp"
+        android:background="@drawable/rounded_rectangle"
+        android:gravity="center"
+        android:text="UserLogin"
+        android:paddingStart="5dp"
+        android:textColor="#000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/userGold"
+        android:layout_width="160dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="7dp"
+        android:layout_marginTop="9dp"
+        android:background="@drawable/rounded_rectangle"
+        android:gravity="center"
+        android:drawableStart="@drawable/gold_psd"
+        android:drawablePadding="-30dp"
+        android:paddingStart="7dp"
+        android:text="12345"
+        android:textColor="#000000"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/Exit"
+        android:layout_width="105dp"
+        android:layout_height="43dp"
+        android:layout_marginStart="-55dp"
+        android:layout_marginTop="2dp"
+        android:background="@drawable/rounded_rectangle"
+        android:gravity="center"
+        android:drawableEnd="@drawable/arrow_left"
+        android:drawablePadding="5dp"
+        android:paddingEnd="3dp"
+        android:textColor="@color/grey"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:clickable="true"
+        android:onClick="Exit"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

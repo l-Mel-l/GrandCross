@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "98561111032",
+    "project_id": "grandcroos-7ee23",
+    "storage_bucket": "grandcroos-7ee23.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:98561111032:android:3a17fcff33119bed109c0d",
+        "android_client_info": {
+          "package_name": "com.example.grandcross"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5ncfMqQtr50PHjzH9XG849h9spOaPRgE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
