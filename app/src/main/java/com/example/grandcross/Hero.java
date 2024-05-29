@@ -103,16 +103,18 @@ public class Hero extends AppCompatActivity {
         mainLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (upgradeLayout.getVisibility() == View.VISIBLE) {
-                    int[] location = new int[2];
-                    upgradeLayout.getLocationOnScreen(location);
-                    int x = location[0];
-                    int y = location[1];
-                    int width = upgradeLayout.getWidth();
-                    int height = upgradeLayout.getHeight();
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    if (upgradeLayout.getVisibility() == View.VISIBLE) {
+                        int[] location = new int[2];
+                        upgradeLayout.getLocationOnScreen(location);
+                        int x = location[0];
+                        int y = location[1];
+                        int width = upgradeLayout.getWidth();
+                        int height = upgradeLayout.getHeight();
 
-                    if (event.getX() < x || event.getX() > (x + width) || event.getY() < y || event.getY() > (y + height)) {
-                        hideRequest();
+                        if (event.getX() < x || event.getX() > (x + width) || event.getY() < y || event.getY() > (y + height)) {
+                            hideRequest();
+                        }
                     }
                 }
                 return false;
