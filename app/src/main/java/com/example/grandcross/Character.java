@@ -11,6 +11,7 @@ public class Character implements Serializable {
     private int listImage;
     private int detailImage;
     private String name;
+    private int lvl;
     private int attack;
     private int defense;
     private int hp;
@@ -18,21 +19,28 @@ public class Character implements Serializable {
     private String userId;
     private List<Ability> abilities;
 
-
     // Пустой конструктор для Firebase
     public Character() {
     }
 
-    public Character(int listImage, int detailImage, String name, int attack, int defense, int hp, Attribute attribute, String userId,List<Ability> abilities) {
+    public Character(int listImage, int detailImage, String name,int lvl, int attack, int defense, int hp, Attribute attribute, String userId,List<Ability> abilities) {
         this.listImage = listImage;
         this.detailImage = detailImage;
         this.name = name;
+        this.lvl = lvl;
         this.attack = attack;
         this.defense = defense;
         this.hp = hp;
         this.attribute = attribute;
         this.userId = userId;
         this.abilities = abilities;
+    }
+    public int getLvl() {
+        return lvl;
+    }
+
+    public void setLvl(int lvl) {
+        this.lvl = lvl;
     }
 
     public int getListImage() {

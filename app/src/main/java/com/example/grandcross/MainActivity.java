@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView[] stars;
     private ImageView[] characterViews;
     private List<Character> allCharacters = new ArrayList<>();
+    private Map<String, Character> characterMap = new HashMap<>();
     private Map<Integer, Integer> imageViewResourceMap = new HashMap<>();
 
     private String userId, login;
@@ -57,16 +58,26 @@ public class MainActivity extends AppCompatActivity {
         initializeCharacters();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initializeViews();
+        initializeCharacters();
+    }
+
     private void initializeCharacters() {
         DatabaseReference characterRef = FirebaseDatabase.getInstance().getReference("characters");
         characterRef.orderByChild("userId").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 allCharacters.clear(); // Очистите список перед добавлением новых данных
+                characterMap.clear(); // Очистите Map перед добавлением новых данных
                 for (DataSnapshot characterSnapshot : snapshot.getChildren()) {
+                    String characterId = characterSnapshot.getKey(); // Получите первичный ключ
                     Character character = characterSnapshot.getValue(Character.class);
                     if (character != null) {
-                        allCharacters.add(character);
+                        allCharacters.add(character); // Добавьте персонажа в список
+                        characterMap.put(characterId, character); // Сохраните ключ и объект Character
                     }
                 }
                 updateStars();
@@ -95,16 +106,20 @@ public class MainActivity extends AppCompatActivity {
         if (imageViewResourceMap.containsKey(view.getId())) {
             int drawableId = imageViewResourceMap.get(view.getId());
             Character selectedCharacter = null;
-            for (Character character : allCharacters) {
-                if (character.getListImage() == drawableId) {
-                    selectedCharacter = character;
+            String selectedCharacterId = null;
+
+            for (Map.Entry<String, Character> entry : characterMap.entrySet()) {
+                if (entry.getValue().getListImage() == drawableId) {
+                    selectedCharacter = entry.getValue();
+                    selectedCharacterId = entry.getKey(); // Получите первичный ключ персонажа
                     break;
                 }
             }
 
-            if (selectedCharacter != null) {
+            if (selectedCharacter != null && selectedCharacterId != null) {
                 Intent intent = new Intent(MainActivity.this, Hero.class);
-                intent.putExtra("character", selectedCharacter).putExtra("login",login);
+                intent.putExtra("character", selectedCharacter).putExtra("login", login);
+                intent.putExtra("characterId", selectedCharacterId); // Передаем первичный ключ персонажа
                 startActivity(intent);
             }
         }
@@ -175,9 +190,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void filterCharactersByAttribute(Character.Attribute attribute) {
-        Stream<Character> filteredCharacters = allCharacters.stream().filter(c -> attribute == Character.Attribute.ALL || c.getAttribute() == attribute);
+        List<Character> charactersToShow;
 
-        List<Character> charactersToShow = filteredCharacters.collect(Collectors.toList());
+        if (attribute == Character.Attribute.ALL) {
+            // Сохраняем исходный порядок
+            charactersToShow = new ArrayList<>(allCharacters);
+        } else {
+            // Фильтруем персонажей по атрибуту
+            charactersToShow = characterMap.entrySet().stream()
+                    .filter(entry -> entry.getValue().getAttribute() == attribute)
+                    .map(Map.Entry::getValue)
+                    .collect(Collectors.toList());
+        }
+
         for (int i = 0; i < characterViews.length; i++) {
             if (i < charactersToShow.size()) {
                 setImageForView(characterViews[i], charactersToShow.get(i).getListImage());
@@ -212,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void Exit(View view){
+    public void Exit(View view) {
         Intent intent = new Intent(getApplicationContext(), Login.class);
         startActivity(intent);
         finish();

@@ -1,5 +1,5 @@
 <resources>
-    <dimen name="resource_image_size_large">70dp</dimen>
-    <dimen name="resource_image_size_medium">60dp</dimen>
-    <dimen name="resource_image_size_small">50dp</dimen>
+    <dimen name="resource_image_size_large">65dp</dimen>
+    <dimen name="resource_image_size_medium">55dp</dimen>
+    <dimen name="resource_image_size_small">45dp</dimen>
 </resources>

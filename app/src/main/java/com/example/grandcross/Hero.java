@@ -1,5 +1,6 @@
 package com.example.grandcross;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -16,15 +17,23 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.flexbox.FlexboxLayout;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import pl.droidsonroids.gif.GifImageView;
@@ -34,18 +43,24 @@ public class Hero extends AppCompatActivity {
     private String login;
     private List<Ability> abilities;
     private ConstraintLayout upgradeLayout;
+    private ConstraintLayout probLayout;
     private ImageView lvlupButton, probButton;
     private TextView fromLevelText, toLevelText;
-    private ImageView plusButton, minusButton;
+    private ImageView plusButton, minusButton,plusProbButton,minusProbButton;
     private boolean isFromLevelSelected = true; // Флажок для отслеживания выбранного TextView
+    private Character.Attribute attribute;
+    private String characterId;
+    Character character;
 
     TextView nameView;
     TextView attackView,attack;
     TextView defenseView, defense;
     TextView hpView, hp;
     TextView lvl, lvltext;
-    TextView bkView, bk;
-
+    TextView bkView, bk, txtView,textView2;
+    ImageView ab_1, ab_2, ab_3,ab_4;
+    GifImageView gifImageView;
+    Button upgradeButton,proButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +75,7 @@ public class Hero extends AppCompatActivity {
         toLevelText = findViewById(R.id.to_level);
         plusButton = findViewById(R.id.plusBut);
         minusButton = findViewById(R.id.minusBut);
+        upgradeButton = findViewById(R.id.upgrade_button);
 
         fromLevelText.setOnClickListener(v -> isFromLevelSelected = true);
         toLevelText.setOnClickListener(v -> isFromLevelSelected = false);
@@ -67,7 +83,7 @@ public class Hero extends AppCompatActivity {
         plusButton.setOnClickListener(v -> adjustLevel(5));
         minusButton.setOnClickListener(v -> adjustLevel(-5));
 
-        GifImageView gifImageView = findViewById(R.id.HeroIll);// Убедитесь, что у вас есть ImageView в вашем activity_hero.xml
+        gifImageView = findViewById(R.id.HeroIll);// Убедитесь, что у вас есть ImageView в вашем activity_hero.xml
 
         nameView = findViewById(R.id.FullName);
         attackView = findViewById(R.id.ATKid);attack = findViewById(R.id.ATK);
@@ -75,20 +91,26 @@ public class Hero extends AppCompatActivity {
         hpView = findViewById(R.id.OZid);hp = findViewById(R.id.OZ);
         lvl = findViewById(R.id.LVLid);lvltext = findViewById(R.id.LVL);
         bkView = findViewById(R.id.BKid);bk = findViewById(R.id.BK);
+        txtView = findViewById(R.id.txt);textView2 = findViewById(R.id.txt2);
+        ab_1 = findViewById(R.id.ab_1);ab_2 = findViewById(R.id.ab_2);ab_3 = findViewById(R.id.ab_3);ab_4 = findViewById(R.id.ab_4);
 
         login = getIntent().getStringExtra("login");
+
         TextView loginText = findViewById(R.id.loginid);
         loginText.setText(login);
         TextView from = findViewById(R.id.from_level);
-        from.setText(lvl.getText());
-        Character character = (Character) getIntent().getSerializableExtra("character");
+        character = (Character) getIntent().getSerializableExtra("character");
 
         if (character != null) {
             gifImageView.setImageResource(character.getDetailImage());
+            lvl.setText(character.getLvl() + "");
+            from.setText(lvl.getText());
             nameView.setText(character.getName().replace('`', '\n'));
             attackView.setText(String.valueOf(character.getAttack()));  // Преобразование числового значения в строку
             defenseView.setText(String.valueOf(character.getDefense()));  // Преобразование числового значения в строку
             hpView.setText(String.valueOf(character.getHp()));  // Преобразование числового значения в строку
+            characterId = getIntent().getStringExtra("characterId");
+            attribute = character.getAttribute();
 
             abilities = character.getAbilities();
             if (abilities != null && abilities.size() >= 2) {
@@ -110,13 +132,21 @@ public class Hero extends AppCompatActivity {
         } else {
             // Обработайте случай, когда данные о персонаже отсутствуют
         }
+        upgradeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                upgradeCharacter(toLevelText, lvl);
+            }
+        });
 
         // Обработка нажатия на кнопку lvlup
         lvlupButton = findViewById(R.id.lvlup);
         probButton = findViewById(R.id.prob);
         upgradeLayout = findViewById(R.id.upgrade_layout);
+        probLayout = findViewById(R.id.prob_layout);
 
         lvlupButton.setOnClickListener(v -> toggleUpgradeLayout());
+        probButton.setOnClickListener(v -> toggleProbLayout());
         ConstraintLayout mainLayout = findViewById(R.id.main);
         mainLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -134,6 +164,18 @@ public class Hero extends AppCompatActivity {
                             hideRequest();
                         }
                     }
+                    if (probLayout.getVisibility() == View.VISIBLE) {
+                        int[] location = new int[2];
+                        probLayout.getLocationOnScreen(location);
+                        int x = location[0];
+                        int y = location[1];
+                        int width = probLayout.getWidth();
+                        int height = probLayout.getHeight();
+
+                        if (event.getX() < x || event.getX() > (x + width) || event.getY() < y || event.getY() > (y + height)) {
+                            hideRequest();
+                        }
+                    }
                 }
                 return false;
             }
@@ -144,12 +186,23 @@ public class Hero extends AppCompatActivity {
         if(upgradeLayout.getVisibility()==View.VISIBLE){
             hideUpgradeLayout();
         }
+        if(probLayout.getVisibility()==View.VISIBLE){
+            hideProbLayout();
+        }
     }
 
     private void hideUpgradeLayout() {
         // Анимация для возврата кнопок lvlup и prob
         lvlupButton.animate().translationY(0).setDuration(500).start();
         probButton.animate().translationY(0).setDuration(500).start();
+        attack.animate().translationX(0).setDuration(500).start();attackView.animate().translationX(0).setDuration(500).start();
+        lvltext.animate().translationX(0).setDuration(500).start(); lvl.animate().translationX(0).setDuration(500).start();
+        defense.animate().translationX(0).setDuration(500).start(); defenseView.animate().translationX(0).setDuration(500).start();
+        hp.animate().translationX(0).setDuration(500).start();hpView.animate().translationX(0).setDuration(500).start();
+        bk.animate().translationX(0).setDuration(500).start(); bkView.animate().translationX(0).setDuration(500).start();
+        txtView.animate().translationX(0).setDuration(500).start(); textView2.animate().translationX(0).setDuration(500).start();
+        ab_1.animate().translationX(0).setDuration(500).start(); ab_2.animate().translationX(0).setDuration(500).start(); ab_3.animate().translationX(0).setDuration(500).start(); ab_4.animate().translationX(0).setDuration(500).start();
+        gifImageView.animate().translationX(0).setDuration(500);
 
         // Анимация для скрытия панели вниз
         TranslateAnimation animate = new TranslateAnimation(0, 0, 0, upgradeLayout.getHeight());
@@ -178,6 +231,47 @@ public class Hero extends AppCompatActivity {
 
         upgradeLayout.startAnimation(animate);
     }
+    private void hideProbLayout() {
+        // Анимация для возврата кнопок lvlup и prob
+        lvlupButton.animate().translationY(0).setDuration(500).start();
+        probButton.animate().translationY(0).setDuration(500).start();
+        attack.animate().translationX(0).setDuration(500).start();attackView.animate().translationX(0).setDuration(500).start();
+        lvltext.animate().translationX(0).setDuration(500).start(); lvl.animate().translationX(0).setDuration(500).start();
+        defense.animate().translationX(0).setDuration(500).start(); defenseView.animate().translationX(0).setDuration(500).start();
+        hp.animate().translationX(0).setDuration(500).start();hpView.animate().translationX(0).setDuration(500).start();
+        bk.animate().translationX(0).setDuration(500).start(); bkView.animate().translationX(0).setDuration(500).start();
+        txtView.animate().translationX(0).setDuration(500).start(); textView2.animate().translationX(0).setDuration(500).start();
+        ab_1.animate().translationX(0).setDuration(500).start(); ab_2.animate().translationX(0).setDuration(500).start(); ab_3.animate().translationX(0).setDuration(500).start(); ab_4.animate().translationX(0).setDuration(500).start();
+        gifImageView.animate().translationX(0).setDuration(500);
+
+        // Анимация для скрытия панели вниз
+        TranslateAnimation animate = new TranslateAnimation(0, 0, 0, probLayout.getHeight());
+        animate.setDuration(500);
+        animate.setFillAfter(true);
+
+        // Слушатель завершения анимации
+        animate.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) probLayout.getLayoutParams();
+                params.topMargin = 0; // Установите новое положение верхнего края
+                probLayout.setLayoutParams(params);
+                probLayout.setVisibility(View.GONE);
+                probLayout.clearAnimation(); // Очистите анимацию, чтобы избежать конфликтов
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+        });
+
+        probLayout.startAnimation(animate);
+    }
+
 
     private void showAbilityDialog(int index) {
         if (abilities != null && abilities.size() > index) {
@@ -211,12 +305,14 @@ public class Hero extends AppCompatActivity {
             lvlupButton.animate().translationY(lvlupButton.getHeight()).setDuration(500).start();
             probButton.animate().translationY(probButton.getHeight()).setDuration(500).start();
 
-            attack.animate().translationX(-400).setDuration(500).start();attackView.animate().translationX(-400).setDuration(500).start();
-            lvltext.animate().translationX(-400).setDuration(500).start(); lvl.animate().translationX(-400).setDuration(500).start();
-            defense.animate().translationX(-400).setDuration(500).start(); defenseView.animate().translationX(-400).setDuration(500).start();
-            hp.animate().translationX(-400).setDuration(500).start();hpView.animate().translationX(-400).setDuration(500).start();
-            bk.animate().translationX(-400).setDuration(500).start(); bkView.animate().translationX(-400).setDuration(500).start();
-
+            attack.animate().translationX(-500).setDuration(500).start();attackView.animate().translationX(-500).setDuration(500).start();
+            lvltext.animate().translationX(-500).setDuration(500).start(); lvl.animate().translationX(-500).setDuration(500).start();
+            defense.animate().translationX(-500).setDuration(500).start(); defenseView.animate().translationX(-500).setDuration(500).start();
+            hp.animate().translationX(-500).setDuration(500).start();hpView.animate().translationX(-500).setDuration(500).start();
+            bk.animate().translationX(-500).setDuration(500).start(); bkView.animate().translationX(-500).setDuration(500).start();
+            txtView.animate().translationX(-500).setDuration(500).start(); textView2.animate().translationX(-500).setDuration(500).start();
+            ab_1.animate().translationX(-500).setDuration(500).start(); ab_2.animate().translationX(-500).setDuration(500).start(); ab_3.animate().translationX(-500).setDuration(500).start(); ab_4.animate().translationX(-500).setDuration(500).start();
+            gifImageView.animate().translationX(-300).setDuration(500);
             // Анимация для выезда снизу
             TranslateAnimation animate = new TranslateAnimation(0, 0, upgradeLayout.getHeight(), -800);
             animate.setDuration(500);
@@ -248,8 +344,63 @@ public class Hero extends AppCompatActivity {
             hideUpgradeLayout();
         }
     }
+    private void toggleProbLayout() {
+        if (probLayout.getVisibility() == View.GONE) {
+            // Анимация для скрытия кнопок lvlup и prob
+            lvlupButton.animate().translationY(lvlupButton.getHeight()).setDuration(500).start();
+            probButton.animate().translationY(probButton.getHeight()).setDuration(500).start();
 
-    private void adjustLevel(int delta) {
+            attack.animate().translationX(-500).setDuration(500).start();
+            attackView.animate().translationX(-500).setDuration(500).start();
+            lvltext.animate().translationX(-500).setDuration(500).start();
+            lvl.animate().translationX(-500).setDuration(500).start();
+            defense.animate().translationX(-500).setDuration(500).start();
+            defenseView.animate().translationX(-500).setDuration(500).start();
+            hp.animate().translationX(-500).setDuration(500).start();
+            hpView.animate().translationX(-500).setDuration(500).start();
+            bk.animate().translationX(-500).setDuration(500).start();
+            bkView.animate().translationX(-500).setDuration(500).start();
+            txtView.animate().translationX(-500).setDuration(500).start();
+            textView2.animate().translationX(-500).setDuration(500).start();
+            ab_1.animate().translationX(-500).setDuration(500).start();
+            ab_2.animate().translationX(-500).setDuration(500).start();
+            ab_3.animate().translationX(-500).setDuration(500).start();
+            ab_4.animate().translationX(-500).setDuration(500).start();
+            gifImageView.animate().translationX(-300).setDuration(500);
+            // Анимация для выезда снизу
+            TranslateAnimation animate = new TranslateAnimation(0, 0, probLayout.getHeight(), -800);
+            animate.setDuration(500);
+            animate.setFillAfter(true);
+
+            // Слушатель завершения анимации
+            animate.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    probLayout.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    // Изменение фактического положения представления
+                    ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) probLayout.getLayoutParams();
+                    params.topMargin = -800; // Установите новое положение верхнего края
+                    probLayout.setLayoutParams(params);
+                    probLayout.clearAnimation(); // Очистите анимацию, чтобы избежать конфликтов
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                }
+            });
+
+            probLayout.startAnimation(animate);
+
+        } else {
+            hideProbLayout();
+        }
+    }
+
+        private void adjustLevel(int delta) {
         TextView selectedTextView = isFromLevelSelected ? fromLevelText : toLevelText;
         int currentValue = Integer.parseInt(selectedTextView.getText().toString());
         int newValue = currentValue + delta;
@@ -290,8 +441,8 @@ public class Hero extends AppCompatActivity {
             String resourceName = entry.getKey();
             int resourceQuantity = entry.getValue();
 
-            // Пропускаем ресурсы, количество которых равно 0
-            if (resourceQuantity == 0||resourceName == "gold")  {
+            // Пропускаем ресурсы, количество которых равно 0 или ресурс золота
+            if (resourceQuantity == 0 || resourceName.equals("gold")) {
                 continue;
             }
 
@@ -302,7 +453,7 @@ public class Hero extends AppCompatActivity {
             ImageView resourceImage = new ImageView(this);
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(imageSize, imageSize);
             resourceImage.setLayoutParams(imageParams);
-            resourceImage.setImageResource(getResourceDrawable(resourceName, attribute)); // Получите соответствующий drawable для ресурса
+            resourceImage.setImageResource(getResourceDrawable(resourceName)); // Получите соответствующий drawable для ресурса
             resourceLayout.addView(resourceImage);
 
             TextView resourceText = new TextView(this);
@@ -313,9 +464,12 @@ public class Hero extends AppCompatActivity {
             resourcesContainer.addView(resourceLayout);
         }
 
-        TextView goldAmount = findViewById(R.id.gold_amount);
-        goldAmount.setText(String.format("%,d золота", resources.get("gold")));
+        int goldAmount = resources.get("gold");
+        String formattedGoldAmount = NumberFormat.getNumberInstance(Locale.US).format(goldAmount);
+
+        upgradeButton.setText(String.format("%s", formattedGoldAmount));
     }
+
 
     private Map<String, Integer> calculateResources(int fromLevel, int toLevel, Character.Attribute attribute) {
         Map<String, Integer> resources = new LinkedHashMap<>(); // Use LinkedHashMap to maintain insertion order
@@ -415,28 +569,67 @@ public class Hero extends AppCompatActivity {
         return resources;
     }
 
-    private int getResourceDrawable(String resourceName, Character.Attribute attribute) {
+    private int getResourceDrawable(String resourceName) {
         switch (resourceName) {
             case "ssr":
                 return R.drawable.ssr_pod;
             case "grimoire3":
-                return R.drawable.green_3;
+                switch (attribute) {
+                    case RED:
+                        return R.drawable.red_3;
+                    case BLUE:
+                        return R.drawable.blue_3;
+                    case GREEN:
+                        return R.drawable.green_3;
+                    case LIGHT:
+                        return R.drawable.light_3;
+                    case DARK:
+                        return R.drawable.dark_3;
+                    default:
+                        return R.drawable.green_3;
+                }
             case "grimoire4":
-                return R.drawable.green_4;
+                switch (attribute) {
+                    case RED:
+                        return R.drawable.red_4;
+                    case BLUE:
+                        return R.drawable.blue_4;
+                    case GREEN:
+                        return R.drawable.green_4;
+                    case LIGHT:
+                        return R.drawable.light_4;
+                    case DARK:
+                        return R.drawable.dark_4;
+                    default:
+                        return R.drawable.green_4;
+                }
             case "grimoire5":
-                return R.drawable.green_5;
+                switch (attribute) {
+                    case RED:
+                        return R.drawable.red_5;
+                    case BLUE:
+                        return R.drawable.blue_5;
+                    case GREEN:
+                        return R.drawable.green_5;
+                    case LIGHT:
+                        return R.drawable.light_5;
+                    case DARK:
+                        return R.drawable.dark_5;
+                    default:
+                        return R.drawable.green_5;
+                }
             case "grimoire6":
                 switch (attribute) {
                     case RED:
-                        return R.drawable.green_6;
+                        return R.drawable.red_6;
                     case BLUE:
-                        return R.drawable.green_6;
+                        return R.drawable.blue_6;
                     case GREEN:
                         return R.drawable.green_6;
                     case LIGHT:
-                        return R.drawable.green_6;
+                        return R.drawable.light_6;
                     case DARK:
-                        return R.drawable.green_6;
+                        return R.drawable.dark_6;
                     default:
                         return R.drawable.green_6;
                 }
@@ -460,6 +653,30 @@ public class Hero extends AppCompatActivity {
     private Character.Attribute getCharacterAttribute() {
         // Реализуйте получение атрибута персонажа из вашей базы данных или текущего состояния
         return Character.Attribute.RED; // Пример, замените на фактическое значение
+    }
+
+    private void upgradeCharacter(TextView toLevelTextView, TextView currentLevelTextView) {
+        int newLevel = Integer.parseInt(toLevelTextView.getText().toString());
+        updateCharacterLevelInDatabase(newLevel);
+        currentLevelTextView.setText(String.valueOf(newLevel));
+    }
+
+    private void updateCharacterLevelInDatabase(int newLevel) {
+        DatabaseReference characterRef = FirebaseDatabase.getInstance().getReference("characters").child(characterId);
+
+        characterRef.child("lvl").setValue(newLevel)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(Hero.this, "Уровень персонажа обновлен", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(Hero.this, "Ошибка обновления уровня персонажа: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     public void ExitToMain(View view) {
