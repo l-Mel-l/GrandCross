@@ -26,8 +26,11 @@ import android.widget.Toast;
 import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -50,7 +53,12 @@ public class Hero extends AppCompatActivity {
     private boolean isFromLevelSelected = true; // Флажок для отслеживания выбранного TextView
     private Character.Attribute attribute;
     private String characterId;
+
+    private int awakeningLevel = 0; // Начальный уровень пробуждения
+    private int selectedStar = 0; // Выбранная звезда для второго этапа
+    private boolean isFirstStage = true; // Флаг для проверки первого этапа
     Character character;
+    int prob;
 
     TextView nameView;
     TextView attackView,attack;
@@ -60,7 +68,7 @@ public class Hero extends AppCompatActivity {
     TextView bkView, bk, txtView,textView2;
     ImageView ab_1, ab_2, ab_3,ab_4;
     GifImageView gifImageView;
-    Button upgradeButton,proButton;
+    Button upgradeButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,6 +119,8 @@ public class Hero extends AppCompatActivity {
             hpView.setText(String.valueOf(character.getHp()));  // Преобразование числового значения в строку
             characterId = getIntent().getStringExtra("characterId");
             attribute = character.getAttribute();
+            getAwakeningLevelFromDatabase();
+            calculateAndDisplayBK();
 
             abilities = character.getAbilities();
             if (abilities != null && abilities.size() >= 2) {
@@ -148,6 +158,13 @@ public class Hero extends AppCompatActivity {
         lvlupButton.setOnClickListener(v -> toggleUpgradeLayout());
         probButton.setOnClickListener(v -> toggleProbLayout());
         ConstraintLayout mainLayout = findViewById(R.id.main);
+        // Обработчики нажатий для пробуждения
+        findViewById(R.id.minusProbBut).setOnClickListener(v -> adjustAwakeningLevel(-1));
+        findViewById(R.id.plusProbBut).setOnClickListener(v -> adjustAwakeningLevel(1));
+        findViewById(R.id.prob_button).setOnClickListener(v -> awakenCharacter());
+
+        // Инициируем начальные данные
+        updateAwakeningResources();
         mainLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -180,6 +197,25 @@ public class Hero extends AppCompatActivity {
                 return false;
             }
         });
+    }
+    private void calculateAndDisplayBK() {
+        if (character != null) {
+            double bk = 400 + character.getHp() * 0.2 +
+                    character.getDefense() * 0.8 +
+                    character.getAttack() * 1.0 +
+                    character.getSopr() * 4.0 +
+                    character.getDefCrit() * 4.0 +
+                    character.getSoprCrit() * 4.0 +
+                    character.getVost() * 2.5 +
+                    character.getReg() * 5.0 +
+                    character.getVamp() * 5.0 +
+                    character.getCritdmg() * 2.5 +
+                    character.getCritch() * 5.0 +
+                    character.getPronz() * 5.0;
+
+            // Отобразим рассчитанное значение БК
+            bkView.setText(String.valueOf((int) bk));
+        }
     }
 
     public void hideRequest() {
@@ -678,7 +714,215 @@ public class Hero extends AppCompatActivity {
                     }
                 });
     }
+    private void adjustAwakeningLevel(int delta) {
+        if (isFirstStage) {
+            int newLevel = awakeningLevel + delta;
 
+            if (newLevel >= 0 && newLevel <= 1) { // Ограничение уровня пробуждения на первом этапе
+                awakeningLevel = newLevel;
+                updateAwakeningResources();
+            }
+        } else {
+            int newSelectedStar = selectedStar + delta;
+
+            if (newSelectedStar >= 0 && newSelectedStar <= 6) { // Ограничение уровня пробуждения на втором этапе
+                selectedStar = newSelectedStar;
+                updateAwakeningResources();
+            }
+        }
+    }
+
+    private void updateAwakeningResources() {
+        FlexboxLayout starContainer = findViewById(R.id.star_container);
+        starContainer.removeAllViews();
+
+        for (int i = 0; i < 6; i++) {
+            ImageView star = new ImageView(this);
+            int starResource;
+
+            if (isFirstStage) {
+                starResource = (awakeningLevel == 1) ? R.drawable.star_ic : R.drawable.not_star;
+            } else {
+                if (i < selectedStar) {
+                    starResource = R.drawable.ac_star_ic;
+                } else {
+                    starResource = R.drawable.star_ic;
+                }
+            }
+
+            star.setImageResource(starResource);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(80, 80);
+            params.setMargins(5, 0, 5, 0);
+            star.setLayoutParams(params);
+            starContainer.addView(star);
+        }
+
+        // Обновление ресурсов
+        Map<String, Integer> resources = calculateAwakeningResources(awakeningLevel, awakeningLevel + selectedStar);
+        FlexboxLayout resourcesContainer = findViewById(R.id.resources_prob_container);
+        resourcesContainer.removeAllViews();
+
+        for (Map.Entry<String, Integer> entry : resources.entrySet()) {
+            String resourceName = entry.getKey();
+            int resourceQuantity = entry.getValue();
+
+            if(resourceQuantity != 0) {
+                LinearLayout resourceLayout = new LinearLayout(this);
+                resourceLayout.setOrientation(LinearLayout.VERTICAL);
+                resourceLayout.setPadding(8, 0, 8, 0);
+
+                ImageView resourceImage = new ImageView(this);
+                LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(170, 170);
+                resourceImage.setLayoutParams(imageParams);
+                resourceImage.setImageResource(getAwakeningResourceDrawable(resourceName));
+                resourceLayout.addView(resourceImage);
+
+                TextView resourceText = new TextView(this);
+                resourceText.setText(String.valueOf(resourceQuantity));
+                resourceText.setGravity(Gravity.CENTER);
+                resourceLayout.addView(resourceText);
+
+                resourcesContainer.addView(resourceLayout);
+            }
+        }
+    }
+
+    private Map<String, Integer> calculateAwakeningResources(int fromLevel, int toLevel) {
+        Map<String, Integer> resources = new LinkedHashMap<>(); // Use LinkedHashMap to maintain insertion order
+
+        int probCoin = 0;
+        int supProbCoin = 0;
+
+        for (int level = prob; level < toLevel; ) {
+            if (isFirstStage) {
+                if (level == 0) {
+                    probCoin += 1;
+                    level = 1;
+                }
+            } else {
+                if (level < 1) {
+                    supProbCoin += 3;
+                    level = 1;
+                } else if (level < 2) {
+                    supProbCoin += 3;
+                    level = 2;
+                } else if (level < 3) {
+                    supProbCoin += 6;
+                    level = 3;
+                } else if (level < 4) {
+                    supProbCoin += 9;
+                    level = 4;
+                } else if (level < 5) {
+                    supProbCoin += 12;
+                    level = 5;
+                } else if (level < 6) {
+                    supProbCoin += 15;
+                    level = 6;
+                } else if (level < 7) {
+                    supProbCoin += 18;
+                    level = 7;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        if (isFirstStage) {
+            resources.put("prob_coin", probCoin);
+        } else {
+            resources.put("sup_prob_coin", supProbCoin);
+        }
+
+        return resources;
+    }
+
+    private void awakenCharacter() {
+        if (isFirstStage) {
+            if (awakeningLevel == 1) {
+                isFirstStage = false;
+                selectedStar = 0;
+            }
+            // Сохраняем уровень пробуждения в базу данных
+            saveAwakeningLevelToDatabase(awakeningLevel);
+        } else {
+            // Сохраняем уровень пробуждения в базу данных
+            saveAwakeningLevelToDatabase(awakeningLevel + selectedStar);
+        }
+
+        // Обновление отображения звёздочек
+        updateAwakeningResources();
+    }
+
+    private void saveAwakeningLevelToDatabase(int level) {
+        DatabaseReference characterRef = FirebaseDatabase.getInstance().getReference("characters").child(characterId);
+
+        characterRef.child("prob").setValue(level)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(Hero.this, "Пробуждение персонажа обновлено", Toast.LENGTH_SHORT).show();
+                        getAwakeningLevelFromDatabase();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(Hero.this, "Ошибка обновления пробуждения персонажа: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private int getAwakeningResourceDrawable(String resourceName) {
+        switch (resourceName) {
+            case "prob_coin":
+                return R.drawable.prob_coin;
+            case "sup_prob_coin":
+                return R.drawable.sup_prob_coin;
+            default:
+                return R.drawable.prob_coin;
+        }
+    }
+    private void getAwakeningLevelFromDatabase() {
+        DatabaseReference characterRef = FirebaseDatabase.getInstance().getReference("characters").child(characterId);
+
+        characterRef.child("prob").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    prob = snapshot.getValue(Integer.class);
+                    updateAwakeningLevelFromDatabase(prob);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(Hero.this, "Ошибка получения уровня пробуждения: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateAwakeningLevelFromDatabase(int prob) {
+        if (prob == 0) {
+            isFirstStage = true;
+            awakeningLevel = 0;
+            selectedStar = 0;
+        } else if (prob == 1) {
+            isFirstStage = false;
+            awakeningLevel = 1;
+            selectedStar = 0;
+        } else if (prob > 1) {
+            isFirstStage = false;
+            awakeningLevel = 1;
+            selectedStar = prob - 1;
+        } else {
+            isFirstStage = true;
+            awakeningLevel = 0;
+            selectedStar = 0;
+        }
+
+        // Обновление отображения звёздочек
+        updateAwakeningResources();
+    }
     public void ExitToMain(View view) {
         finish();
     }
