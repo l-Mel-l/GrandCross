@@ -1,5 +1,7 @@
 package com.example.grandcross;
 
+import com.google.firebase.database.DatabaseReference;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -14,18 +16,21 @@ public class Character implements Serializable {
     private String name;
     private int lvl;
     private int prob;
-    private int attack;
-    private int defense;
-    private int hp;
-    private int Pronz;
+    private double attack;
+    private double defense;
+    private double hp;
+    private double Pronz;
     private int sopr;
     private int Reg;
     private int Critch;
-    private int Critdmg;
+    private double Critdmg;
     private int soprCrit;
     private int defCrit;
     private int Vost;
     private int Vamp;
+    private double AtkBuf;
+    private double DefBuf;
+    private double HpBuf;
 
 
     private Attribute attribute;
@@ -36,7 +41,7 @@ public class Character implements Serializable {
     public Character() {
     }
 
-    public Character(int listImage, int detailImage, String name, int lvl, int prob, int attack, int defense, int hp, int pronz, int sopr, int reg, int critch, int critdmg, int soprCrit, int defCrit, int vost, int vamp, Attribute attribute, String userId, List<Ability> abilities) {
+    public Character(int listImage, int detailImage, String name, int lvl, int prob, double attack, double defense, double hp, double pronz, int sopr, int reg, int critch, double critdmg, int soprCrit, int defCrit, int vost, int vamp, double atkBuf, double defBuf, double hpBuf, Attribute attribute, String userId, List<Ability> abilities) {
         this.listImage = listImage;
         this.detailImage = detailImage;
         this.name = name;
@@ -54,6 +59,9 @@ public class Character implements Serializable {
         this.defCrit = defCrit;
         Vost = vost;
         Vamp = vamp;
+        AtkBuf = atkBuf;
+        DefBuf = defBuf;
+        HpBuf = hpBuf;
         this.attribute = attribute;
         this.userId = userId;
         this.abilities = abilities;
@@ -99,35 +107,35 @@ public class Character implements Serializable {
         this.prob = prob;
     }
 
-    public int getAttack() {
+    public double getAttack() {
         return attack;
     }
 
-    public void setAttack(int attack) {
+    public void setAttack(double attack) {
         this.attack = attack;
     }
 
-    public int getDefense() {
+    public double getDefense() {
         return defense;
     }
 
-    public void setDefense(int defense) {
+    public void setDefense(double defense) {
         this.defense = defense;
     }
 
-    public int getHp() {
+    public double getHp() {
         return hp;
     }
 
-    public void setHp(int hp) {
+    public void setHp(double hp) {
         this.hp = hp;
     }
 
-    public int getPronz() {
+    public double getPronz() {
         return Pronz;
     }
 
-    public void setPronz(int pronz) {
+    public void setPronz(double pronz) {
         Pronz = pronz;
     }
 
@@ -155,11 +163,11 @@ public class Character implements Serializable {
         Critch = critch;
     }
 
-    public int getCritdmg() {
+    public double getCritdmg() {
         return Critdmg;
     }
 
-    public void setCritdmg(int critdmg) {
+    public void setCritdmg(double critdmg) {
         Critdmg = critdmg;
     }
 
@@ -195,6 +203,30 @@ public class Character implements Serializable {
         Vamp = vamp;
     }
 
+    public double getAtkBuf() {
+        return AtkBuf;
+    }
+
+    public void setAtkBuf(double atkBuf) {
+        AtkBuf = atkBuf;
+    }
+
+    public double getDefBuf() {
+        return DefBuf;
+    }
+
+    public void setDefBuf(double defBuf) {
+        DefBuf = defBuf;
+    }
+
+    public double getHpBuf() {
+        return HpBuf;
+    }
+
+    public void setHpBuf(double hpBuf) {
+        HpBuf = hpBuf;
+    }
+
     public Attribute getAttribute() {
         return attribute;
     }
@@ -217,5 +249,23 @@ public class Character implements Serializable {
 
     public void setAbilities(List<Ability> abilities) {
         this.abilities = abilities;
+    }
+    public void calculateAndSaveEnhancedStats(int newLevel, DatabaseReference characterRef) {
+        // Получаем текущий уровень
+        int currentLevel = this.lvl;
+
+        // Разница между новым уровнем и текущим
+        int levelDifference = newLevel - currentLevel;
+
+        // Рассчитываем новые значения характеристик
+
+        this.attack = (this.attack + AtkBuf * levelDifference);
+        this.defense = (this.defense + DefBuf * levelDifference);
+        this.hp = (this.hp + HpBuf * levelDifference);
+
+        // Обновляем значения в Firebase
+        characterRef.child("attack").setValue(this.attack);
+        characterRef.child("defense").setValue(this.defense);
+        characterRef.child("hp").setValue(this.hp);
     }
 }

@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -30,8 +31,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -42,6 +46,7 @@ import java.util.Map;
 import pl.droidsonroids.gif.GifImageView;
 
 public class Hero extends AppCompatActivity {
+    int check = 0;
 
     private String login;
     private List<Ability> abilities;
@@ -69,6 +74,9 @@ public class Hero extends AppCompatActivity {
     ImageView ab_1, ab_2, ab_3,ab_4;
     GifImageView gifImageView;
     Button upgradeButton;
+    DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+    DecimalFormat decimalFormat;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,14 +93,28 @@ public class Hero extends AppCompatActivity {
         minusButton = findViewById(R.id.minusBut);
         upgradeButton = findViewById(R.id.upgrade_button);
 
-        fromLevelText.setOnClickListener(v -> isFromLevelSelected = true);
-        toLevelText.setOnClickListener(v -> isFromLevelSelected = false);
+        fromLevelText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isFromLevelSelected = true;
+                setUnderline(fromLevelText);
+                removeUnderline(toLevelText);
+            }
+        });
+
+        toLevelText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isFromLevelSelected = false;
+                setUnderline(toLevelText);
+                removeUnderline(fromLevelText);
+            }
+        });
 
         plusButton.setOnClickListener(v -> adjustLevel(5));
         minusButton.setOnClickListener(v -> adjustLevel(-5));
 
         gifImageView = findViewById(R.id.HeroIll);// Убедитесь, что у вас есть ImageView в вашем activity_hero.xml
-
         nameView = findViewById(R.id.FullName);
         attackView = findViewById(R.id.ATKid);attack = findViewById(R.id.ATK);
         defenseView = findViewById(R.id.DEFid);defense = findViewById(R.id.DEF);
@@ -106,17 +128,18 @@ public class Hero extends AppCompatActivity {
 
         TextView loginText = findViewById(R.id.loginid);
         loginText.setText(login);
-        TextView from = findViewById(R.id.from_level);
         character = (Character) getIntent().getSerializableExtra("character");
 
         if (character != null) {
             gifImageView.setImageResource(character.getDetailImage());
             lvl.setText(character.getLvl() + "");
-            from.setText(lvl.getText());
+            fromLevelText.setText(lvl.getText());
             nameView.setText(character.getName().replace('`', '\n'));
-            attackView.setText(String.valueOf(character.getAttack()));  // Преобразование числового значения в строку
-            defenseView.setText(String.valueOf(character.getDefense()));  // Преобразование числового значения в строку
-            hpView.setText(String.valueOf(character.getHp()));  // Преобразование числового значения в строку
+            symbols.setGroupingSeparator(',');
+            decimalFormat = new DecimalFormat("#,###", symbols);
+            attackView.setText(decimalFormat.format(character.getAttack()));  // Отображение значения атаки с разделителями тысяч
+            defenseView.setText(decimalFormat.format(character.getDefense()));  // Отображение значения защиты с разделителями тысяч
+            hpView.setText(decimalFormat.format(character.getHp()));  // Отображение значения здоровья с разделителями тысяч
             characterId = getIntent().getStringExtra("characterId");
             attribute = character.getAttribute();
             getAwakeningLevelFromDatabase();
@@ -163,8 +186,6 @@ public class Hero extends AppCompatActivity {
         findViewById(R.id.plusProbBut).setOnClickListener(v -> adjustAwakeningLevel(1));
         findViewById(R.id.prob_button).setOnClickListener(v -> awakenCharacter());
 
-        // Инициируем начальные данные
-        updateAwakeningResources();
         mainLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -214,7 +235,7 @@ public class Hero extends AppCompatActivity {
                     character.getPronz() * 5.0;
 
             // Отобразим рассчитанное значение БК
-            bkView.setText(String.valueOf((int) bk));
+            bkView.setText(decimalFormat.format((int) bk));
         }
     }
 
@@ -435,12 +456,23 @@ public class Hero extends AppCompatActivity {
             hideProbLayout();
         }
     }
+    private void setUnderline(TextView textView) {
+        textView.setPaintFlags(textView.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+    }
 
+    private void removeUnderline(TextView textView) {
+        textView.setPaintFlags(textView.getPaintFlags() & ~Paint.UNDERLINE_TEXT_FLAG);
+    }
         private void adjustLevel(int delta) {
         TextView selectedTextView = isFromLevelSelected ? fromLevelText : toLevelText;
         int currentValue = Integer.parseInt(selectedTextView.getText().toString());
         int newValue = currentValue + delta;
-
+            if(currentValue == 5 && delta == -5) {
+                newValue = currentValue + (delta+1);
+            }
+            if(currentValue == 1 && delta == 5) {
+                newValue = currentValue + (delta-1);
+            }
         if (newValue >= 0 && newValue <= 100) {
             selectedTextView.setText(String.valueOf(newValue));
         }
@@ -704,6 +736,13 @@ public class Hero extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
+                        // Расчет и сохранение новых характеристик
+                        character.calculateAndSaveEnhancedStats(newLevel, characterRef);
+                        updateCharacterStatsUI();
+                        character.setLvl(newLevel);
+                        fromLevelText.setText(newLevel+"");
+                        calculateAndDisplayBK();
+
                         Toast.makeText(Hero.this, "Уровень персонажа обновлен", Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -714,19 +753,40 @@ public class Hero extends AppCompatActivity {
                     }
                 });
     }
+
+    // Метод для обновления UI с новыми характеристиками
+    private void updateCharacterStatsUI() {
+        attackView.setText(decimalFormat.format(character.getAttack()));  // Округление и форматирование значения атаки
+        defenseView.setText(decimalFormat.format(character.getDefense()));  // Округление и форматирование значения защиты
+        hpView.setText(decimalFormat.format(character.getHp()));  // Округление и форматирование значения здоровья
+    }
     private void adjustAwakeningLevel(int delta) {
         if (isFirstStage) {
             int newLevel = awakeningLevel + delta;
 
             if (newLevel >= 0 && newLevel <= 1) { // Ограничение уровня пробуждения на первом этапе
                 awakeningLevel = newLevel;
-                updateAwakeningResources();
+                if(delta == 1){
+                    selectedStar +=1;
+                    updateAwakeningResources();
+                    selectedStar -=1;
+                } else if (delta == -1) {
+                    selectedStar -=1;
+                    updateAwakeningResources();
+                    selectedStar +=1;
+                }
             }
         } else {
             int newSelectedStar = selectedStar + delta;
 
             if (newSelectedStar >= 0 && newSelectedStar <= 6) { // Ограничение уровня пробуждения на втором этапе
                 selectedStar = newSelectedStar;
+                updateAwakeningResources();
+            } else if (newSelectedStar<=0 && prob == 1) {
+                check = 1;
+                awakeningLevel = 0;
+                isFirstStage = true;
+                selectedStar = 0;
                 updateAwakeningResources();
             }
         }
@@ -758,7 +818,7 @@ public class Hero extends AppCompatActivity {
         }
 
         // Обновление ресурсов
-        Map<String, Integer> resources = calculateAwakeningResources(awakeningLevel, awakeningLevel + selectedStar);
+        Map<String, Integer> resources = calculateAwakeningResources(prob-1, selectedStar);
         FlexboxLayout resourcesContainer = findViewById(R.id.resources_prob_container);
         resourcesContainer.removeAllViews();
 
@@ -793,34 +853,32 @@ public class Hero extends AppCompatActivity {
         int probCoin = 0;
         int supProbCoin = 0;
 
-        for (int level = prob; level < toLevel; ) {
+        for (int level = fromLevel; level < toLevel; ) {
             if (isFirstStage) {
-                if (level == 0) {
+                if(selectedStar == 1) {
                     probCoin += 1;
                     level = 1;
                 }
+                break;
             } else {
                 if (level < 1) {
                     supProbCoin += 3;
                     level = 1;
                 } else if (level < 2) {
-                    supProbCoin += 3;
+                    supProbCoin += 6;
                     level = 2;
                 } else if (level < 3) {
-                    supProbCoin += 6;
+                    supProbCoin += 9;
                     level = 3;
                 } else if (level < 4) {
-                    supProbCoin += 9;
+                    supProbCoin += 12;
                     level = 4;
                 } else if (level < 5) {
-                    supProbCoin += 12;
+                    supProbCoin += 15;
                     level = 5;
                 } else if (level < 6) {
-                    supProbCoin += 15;
-                    level = 6;
-                } else if (level < 7) {
                     supProbCoin += 18;
-                    level = 7;
+                    level = 6;
                 } else {
                     break;
                 }
@@ -835,41 +893,199 @@ public class Hero extends AppCompatActivity {
 
         return resources;
     }
-
     private void awakenCharacter() {
+        DatabaseReference characterRef = FirebaseDatabase.getInstance().getReference("characters").child(characterId);
+        getAwakeningLevelFromDatabase();
+
         if (isFirstStage) {
+            if (check == 1){
+                reduceCharacterFirsrStats(prob,characterRef);
+            }
             if (awakeningLevel == 1) {
-                isFirstStage = false;
                 selectedStar = 0;
+                updateCharacterStats(prob, characterRef);
             }
             // Сохраняем уровень пробуждения в базу данных
             saveAwakeningLevelToDatabase(awakeningLevel);
         } else {
-            // Сохраняем уровень пробуждения в базу данных
+            // Проверяем, увеличиваем ли мы уровень пробуждения или уменьшаем
+            if (selectedStar > prob-1) {
+                for (int star = prob; star <= selectedStar; star++) {
+                    updateCharacterStats(star, characterRef);
+                }
+            } else if (selectedStar < prob-1) {
+                for (int star = prob-1; star > selectedStar; star--) {
+                    reduceCharacterStats(star, characterRef);
+                }
+            }
+
+            // Сохраняем новый уровень пробуждения в базу данных
             saveAwakeningLevelToDatabase(awakeningLevel + selectedStar);
         }
+        calculateAndDisplayBK();
 
         // Обновление отображения звёздочек
         updateAwakeningResources();
     }
 
-    private void saveAwakeningLevelToDatabase(int level) {
-        DatabaseReference characterRef = FirebaseDatabase.getInstance().getReference("characters").child(characterId);
+    private void updateCharacterStats(int level, DatabaseReference characterRef) {
+        if (isFirstStage) {
+            characterRef.child("attack").setValue(ServerValue.increment(1440));
+            characterRef.child("defense").setValue(ServerValue.increment(576));
+            characterRef.child("hp").setValue(ServerValue.increment(8400));
+            characterRef.child("critdmg").setValue(ServerValue.increment(7.5));
+            characterRef.child("critch").setValue(ServerValue.increment(3));
+            characterRef.child("pronz").setValue(ServerValue.increment(4.5));
+            characterRef.child("soprCrit").setValue(ServerValue.increment(2));
+            characterRef.child("sopr").setValue(ServerValue.increment(3));
+            characterRef.child("defCrit").setValue(ServerValue.increment(5));
+            characterRef.child("vost").setValue(ServerValue.increment(3));
+            characterRef.child("reg").setValue(ServerValue.increment(2));
+            characterRef.child("vamp").setValue(ServerValue.increment(2));
+            character.setAttack(character.getAttack()+1440);
+            character.setDefense(character.getDefense()+576);
+            character.setHp(character.getHp()+8400);
+            character.setCritdmg(character.getCritdmg()+7.5);
+            character.setCritch(character.getCritch()+3);
+            character.setPronz(character.getPronz()+4.5);
+            character.setSoprCrit(character.getSoprCrit()+2);
+            character.setSopr(character.getSopr()+3);
+            character.setDefCrit(character.getDefCrit()+5);
+            character.setVost(character.getVost()+3);
+            character.setReg(character.getReg()+2);
+            character.setVamp(character.getVamp()+2);
+            isFirstStage = false;
+        }else{
+        switch (level) {
+            case 1:
+                characterRef.child("hp").setValue(ServerValue.increment(6250));
+                characterRef.child("soprCrit").setValue(ServerValue.increment(9));
+                characterRef.child("vost").setValue(ServerValue.increment(9));
+                character.setHp(character.getHp()+6250);
+                character.setSoprCrit(character.getSoprCrit()+9);
+                character.setVost(character.getVost()+9);
+                break;
+            case 2:
+                characterRef.child("attack").setValue(ServerValue.increment(150));
+                characterRef.child("defense").setValue(ServerValue.increment(160));
+                characterRef.child("critdmg").setValue(ServerValue.increment(20));
+                character.setAttack(character.getAttack()+150);
+                character.setDefense(character.getDefense()+160);
+                character.setCritdmg(character.getCritdmg()+20);
+                break;
+            case 3:
+                characterRef.child("hp").setValue(ServerValue.increment(8750));
+                characterRef.child("reg").setValue(ServerValue.increment(30));
+                characterRef.child("defCrit").setValue(ServerValue.increment(9));
+                character.setHp(character.getHp()+8750);
+                character.setReg(character.getReg()+30);
+                character.setDefCrit(character.getDefCrit()+9);
+                break;
+            case 4:
+                characterRef.child("attack").setValue(ServerValue.increment(450));
+                characterRef.child("defense").setValue(ServerValue.increment(480));
+                characterRef.child("critch").setValue(ServerValue.increment(15));
+                character.setAttack(character.getAttack()+450);
+                character.setDefense(character.getDefense()+480);
+                character.setCritch(character.getCritch()+15);
+                break;
+            case 5:
+                characterRef.child("pronz").setValue(ServerValue.increment(15));
+                characterRef.child("critdmg").setValue(ServerValue.increment(10));
+                characterRef.child("defCrit").setValue(ServerValue.increment(9));
+                character.setPronz(character.getPronz()+15);
+                character.setCritdmg(character.getCritdmg()+10);
+                character.setDefCrit(character.getDefCrit()+9);
+                break;
+            case 6:
+                characterRef.child("attack").setValue(ServerValue.increment(300));
+                characterRef.child("defense").setValue(ServerValue.increment(320));
+                characterRef.child("hp").setValue(ServerValue.increment(12000));
+                character.setAttack(character.getAttack()+300);
+                character.setDefense(character.getDefense()+320);
+                character.setHp(character.getHp()+12000);
+                break;
+        }}
+    } private void reduceCharacterFirsrStats(int level, DatabaseReference characterRef) {
+        characterRef.child("attack").setValue(ServerValue.increment(-1440));
+        characterRef.child("defense").setValue(ServerValue.increment(-576));
+        characterRef.child("hp").setValue(ServerValue.increment(-8400));
+        characterRef.child("critdmg").setValue(ServerValue.increment(-7.5));
+        characterRef.child("critch").setValue(ServerValue.increment(-3));
+        characterRef.child("pronz").setValue(ServerValue.increment(-4.5));
+        characterRef.child("soprCrit").setValue(ServerValue.increment(-2));
+        characterRef.child("sopr").setValue(ServerValue.increment(-3));
+        characterRef.child("defCrit").setValue(ServerValue.increment(-5));
+        characterRef.child("vost").setValue(ServerValue.increment(-3));
+        characterRef.child("reg").setValue(ServerValue.increment(-2));
+        characterRef.child("vamp").setValue(ServerValue.increment(-2));
+        character.setAttack(character.getAttack()-1440);
+        character.setDefense(character.getDefense()-576);
+        character.setHp(character.getHp()-8400);
+        character.setCritdmg(character.getCritdmg()-7.5);
+        character.setCritch(character.getCritch()-3);
+        character.setPronz(character.getPronz()-4.5);
+        character.setSoprCrit(character.getSoprCrit()-2);
+        character.setSopr(character.getSopr()-3);
+        character.setDefCrit(character.getDefCrit()-5);
+        character.setVost(character.getVost()-3);
+        character.setReg(character.getReg()-2);
+        character.setVamp(character.getVamp()-2);
+        isFirstStage = true;
+        check = 0;
+    }
 
-        characterRef.child("prob").setValue(level)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast.makeText(Hero.this, "Пробуждение персонажа обновлено", Toast.LENGTH_SHORT).show();
-                        getAwakeningLevelFromDatabase();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(Hero.this, "Ошибка обновления пробуждения персонажа: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+    private void reduceCharacterStats(int level, DatabaseReference characterRef) {
+        switch (level) {
+            case 1:
+                characterRef.child("hp").setValue(ServerValue.increment(-6250));
+                characterRef.child("soprCrit").setValue(ServerValue.increment(-9));
+                characterRef.child("vost").setValue(ServerValue.increment(-9));
+                character.setHp(character.getHp()-6250);
+                character.setSoprCrit(character.getSoprCrit()-9);
+                character.setVost(character.getVost()-9);
+                break;
+            case 2:
+                characterRef.child("attack").setValue(ServerValue.increment(-150));
+                characterRef.child("defense").setValue(ServerValue.increment(-160));
+                characterRef.child("critdmg").setValue(ServerValue.increment(-20));
+                character.setAttack(character.getAttack()-150);
+                character.setDefense(character.getDefense()-160);
+                character.setCritdmg(character.getCritdmg()-20);
+                break;
+            case 3:
+                characterRef.child("hp").setValue(ServerValue.increment(-8750));
+                characterRef.child("reg").setValue(ServerValue.increment(-30));
+                characterRef.child("defCrit").setValue(ServerValue.increment(-9));
+                character.setHp(character.getHp()-8750);
+                character.setReg(character.getReg()-30);
+                character.setDefCrit(character.getDefCrit()-9);
+                break;
+            case 4:
+                characterRef.child("attack").setValue(ServerValue.increment(-450));
+                characterRef.child("defense").setValue(ServerValue.increment(-480));
+                characterRef.child("critch").setValue(ServerValue.increment(-15));
+                character.setAttack(character.getAttack()-450);
+                character.setDefense(character.getDefense()-480);
+                character.setCritch(character.getCritch()-15);
+                break;
+            case 5:
+                characterRef.child("pronz").setValue(ServerValue.increment(-15));
+                characterRef.child("critdmg").setValue(ServerValue.increment(-10));
+                characterRef.child("defCrit").setValue(ServerValue.increment(-9));
+                character.setPronz(character.getPronz()-15);
+                character.setCritdmg(character.getCritdmg()-10);
+                character.setDefCrit(character.getDefCrit()-9);
+                break;
+            case 6:
+                characterRef.child("attack").setValue(ServerValue.increment(-300));
+                characterRef.child("defense").setValue(ServerValue.increment(-320));
+                characterRef.child("hp").setValue(ServerValue.increment(-12000));
+                character.setAttack(character.getAttack()-300);
+                character.setDefense(character.getDefense()-320);
+                character.setHp(character.getHp()-12000);
+                break;
+        }
     }
 
     private int getAwakeningResourceDrawable(String resourceName) {
@@ -882,6 +1098,7 @@ public class Hero extends AppCompatActivity {
                 return R.drawable.prob_coin;
         }
     }
+
     private void getAwakeningLevelFromDatabase() {
         DatabaseReference characterRef = FirebaseDatabase.getInstance().getReference("characters").child(characterId);
 
@@ -922,6 +1139,25 @@ public class Hero extends AppCompatActivity {
 
         // Обновление отображения звёздочек
         updateAwakeningResources();
+    }
+    private void saveAwakeningLevelToDatabase(int level) {
+        DatabaseReference characterRef = FirebaseDatabase.getInstance().getReference("characters").child(characterId);
+
+        characterRef.child("prob").setValue(level)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(Hero.this, "Пробуждение персонажа обновлено", Toast.LENGTH_SHORT).show();
+                        getAwakeningLevelFromDatabase();
+                        updateCharacterStatsUI();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(Hero.this, "Ошибка обновления пробуждения персонажа: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
     public void ExitToMain(View view) {
         finish();
