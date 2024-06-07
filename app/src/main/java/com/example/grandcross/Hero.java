@@ -92,6 +92,7 @@ public class Hero extends AppCompatActivity {
         plusButton = findViewById(R.id.plusBut);
         minusButton = findViewById(R.id.minusBut);
         upgradeButton = findViewById(R.id.upgrade_button);
+        setUnderline(fromLevelText);
 
         fromLevelText.setOnClickListener(new View.OnClickListener() {
             @Override

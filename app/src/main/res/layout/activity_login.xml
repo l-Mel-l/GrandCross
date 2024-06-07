@@ -49,7 +49,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/LoginId"
         app:layout_constraintWidth_percent="0.8"
-        android:textColorHint="@color/grey"/>
+        android:textColorHint="@color/grey"
+        android:inputType="textPassword"/>
 
     <Button
         android:id="@+id/LoginButtonId"
