@@ -15,6 +15,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.example.grandcross.AppLogger;
 
 public class Registration extends AppCompatActivity {
 
@@ -31,6 +32,7 @@ public class Registration extends AppCompatActivity {
         loginEditText = findViewById(R.id.LoginId);
         passwordEditText = findViewById(R.id.PasswordId);
         registerBut = findViewById(R.id.LoginButtonId);
+        AppLogger.info("Application started");
 
         registerBut.setOnClickListener(new View.OnClickListener() {
             @Override

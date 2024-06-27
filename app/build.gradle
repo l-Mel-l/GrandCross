@@ -42,4 +42,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation("com.google.firebase:firebase-database")
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.28'
+    implementation 'org.slf4j:slf4j-api:1.7.32'
+    implementation 'ch.qos.logback:logback-classic:1.2.6'
 }
