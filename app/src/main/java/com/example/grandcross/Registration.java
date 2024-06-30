@@ -65,6 +65,7 @@ public class Registration extends AppCompatActivity {
                                     databaseReference.child("users").child(userId).child("password").setValue(password);
                                     initializeCharactersForUser(userId);
                                     Toast.makeText(Registration.this, "Вы успешно зарегистрировались!", Toast.LENGTH_SHORT).show();
+                                    AppLogger.info("User " +  login + " registrated");
                                     finish();
                                 } else {
                                     Toast.makeText(Registration.this, "Ошибка регистрации, попробуйте снова", Toast.LENGTH_SHORT).show();

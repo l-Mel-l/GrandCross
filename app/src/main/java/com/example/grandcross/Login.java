@@ -77,6 +77,7 @@ public class Login extends AppCompatActivity {
                                 Intent intent = new Intent(Login.this, MainActivity.class);
                                 intent.putExtra("userId", userId).putExtra("login",login);
                                 startActivity(intent);
+                                AppLogger.info("User " +  login + " autorized");
                                 finish();
                             } else {
                                 Toast.makeText(Login.this, "Неверный логин или пароль", Toast.LENGTH_SHORT).show();
