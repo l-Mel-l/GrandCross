@@ -164,7 +164,6 @@ public class Hero extends AppCompatActivity {
                 ability4.setOnClickListener(view -> showAbilityDialog(3));
             }
         } else {
-            // Обработайте случай, когда данные о персонаже отсутствуют
         }
         upgradeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -483,7 +482,7 @@ public class Hero extends AppCompatActivity {
     private void updateResources() {
         int fromLevel = Integer.parseInt(((TextView) findViewById(R.id.from_level)).getText().toString());
         int toLevel = Integer.parseInt(((TextView) findViewById(R.id.to_level)).getText().toString());
-        Character.Attribute attribute = getCharacterAttribute(); // Получите атрибут персонажа
+        Character.Attribute attribute = getCharacterAttribute();
 
         Map<String, Integer> resources = calculateResources(fromLevel, toLevel, attribute);
 
@@ -499,11 +498,11 @@ public class Hero extends AppCompatActivity {
 
         int imageSize;
         if (visibleResourceCount <= 5) {
-            imageSize = (int) getResources().getDimension(R.dimen.resource_image_size_large); // 70dp
+            imageSize = (int) getResources().getDimension(R.dimen.resource_image_size_large);
         } else if (visibleResourceCount <= 10) {
-            imageSize = (int) getResources().getDimension(R.dimen.resource_image_size_medium); // 60dp
+            imageSize = (int) getResources().getDimension(R.dimen.resource_image_size_medium);
         } else {
-            imageSize = (int) getResources().getDimension(R.dimen.resource_image_size_small); // 50dp
+            imageSize = (int) getResources().getDimension(R.dimen.resource_image_size_small);
         }
 
         for (Map.Entry<String, Integer> entry : resources.entrySet()) {
@@ -517,12 +516,12 @@ public class Hero extends AppCompatActivity {
 
             LinearLayout resourceLayout = new LinearLayout(this);
             resourceLayout.setOrientation(LinearLayout.VERTICAL);
-            resourceLayout.setPadding(8, 0, 8, 0); // Добавим немного отступов между ресурсами
+            resourceLayout.setPadding(8, 0, 8, 0);
 
             ImageView resourceImage = new ImageView(this);
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(imageSize, imageSize);
             resourceImage.setLayoutParams(imageParams);
-            resourceImage.setImageResource(getResourceDrawable(resourceName)); // Получите соответствующий drawable для ресурса
+            resourceImage.setImageResource(getResourceDrawable(resourceName));
             resourceLayout.addView(resourceImage);
 
             TextView resourceText = new TextView(this);
@@ -541,7 +540,7 @@ public class Hero extends AppCompatActivity {
 
 
     private Map<String, Integer> calculateResources(int fromLevel, int toLevel, Character.Attribute attribute) {
-        Map<String, Integer> resources = new LinkedHashMap<>(); // Use LinkedHashMap to maintain insertion order
+        Map<String, Integer> resources = new LinkedHashMap<>();
 
         int ssrCount = 0;
         int grimoire3Count = 0;
@@ -720,8 +719,7 @@ public class Hero extends AppCompatActivity {
     }
 
     private Character.Attribute getCharacterAttribute() {
-        // Реализуйте получение атрибута персонажа из вашей базы данных или текущего состояния
-        return Character.Attribute.RED; // Пример, замените на фактическое значение
+        return Character.Attribute.RED;
     }
 
     private void upgradeCharacter(TextView toLevelTextView, TextView currentLevelTextView) {
@@ -849,7 +847,7 @@ public class Hero extends AppCompatActivity {
     }
 
     private Map<String, Integer> calculateAwakeningResources(int fromLevel, int toLevel) {
-        Map<String, Integer> resources = new LinkedHashMap<>(); // Use LinkedHashMap to maintain insertion order
+        Map<String, Integer> resources = new LinkedHashMap<>();
 
         int probCoin = 0;
         int supProbCoin = 0;
