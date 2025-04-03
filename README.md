@@ -15,6 +15,8 @@
 - [Android Studio](https://developer.android.com/studio)
 - [Java](https://www.java.com/ru/)
 - [FireBase](https://firebase.google.com/)
+- [Unity](https://unity.com/ru)
+- [Blender](https://www.blender.org/)
  ## Использование
 Для работы с приложением необходимо следующее программное обеспечение:
 1. Android Studio Перед началом работы с Мобильным приложением "Автоматизированная система расчёта ресурсов и характеристик GrandCross" на рабочем месте пользователя необходимо выполнить следующие действия:
