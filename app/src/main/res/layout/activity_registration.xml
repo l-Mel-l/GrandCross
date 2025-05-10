@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Registration"
-    android:background="#020d4d">
+    android:background="#f4e4ca">
 
     <TextView
         android:id="@+id/textViewAuthorization"
@@ -17,9 +17,9 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="250dp"
-        android:textSize="25dp"
-        android:textColor="#FFFFFF"/>
+        android:layout_marginTop="260dp"
+        android:textSize="29dp"
+        android:textColor="#000000"/>
 
     <EditText
         android:id="@+id/LoginId"
@@ -27,40 +27,40 @@
         android:layout_height="wrap_content"
         android:hint="Логин"
         android:background="@drawable/rounded_edittext_background"
-        android:padding="10dp"
+        android:padding="15dp"
         app:layout_constraintTop_toBottomOf="@+id/textViewAuthorization"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="40dp"
-        android:textColor="@color/grey"
+        android:textColor="#916f40"
         app:layout_constraintWidth_percent="0.8"
-        android:textColorHint="@color/grey"/>
+        android:textColorHint="#916f40"/>
 
     <EditText
         android:id="@+id/PasswordId"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/rounded_edittext_background"
         android:hint="Пароль"
-        android:textColor="@color/grey"
-        android:padding="10dp"
+        android:textColor="#916f40"
+        android:padding="15dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/LoginId"
         app:layout_constraintWidth_percent="0.8"
-        android:textColorHint="@color/grey"/>
+        android:textColorHint="#916f40"/>
 
     <Button
         android:id="@+id/LoginButtonId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:backgroundTint="#F36"
-        android:paddingLeft="30dp"
-        android:paddingTop="10dp"
-        android:paddingRight="30dp"
-        android:paddingBottom="10dp"
+        android:backgroundTint="#f6727d"
+        android:paddingLeft="32dp"
+        android:paddingTop="12dp"
+        android:paddingRight="32dp"
+        android:paddingBottom="12dp"
         android:text="Зарегистрироваться"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
@@ -68,27 +68,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/PasswordId" />
-
-    <ImageView
-        android:id="@+id/imageView2"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="80dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/image_psd__1_" />
-
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="470dp"
-        android:layout_height="400dp"
-        android:layout_marginStart="-30dp"
-        android:layout_marginBottom="-80dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/down" />
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

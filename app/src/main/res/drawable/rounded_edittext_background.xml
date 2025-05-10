@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@android:color/transparent" /> <!-- Прозрачный фон -->
-    <stroke android:width="1dp" android:color="#808080" /> <!-- Серая обводка -->
+    <solid android:color="#f9e8cc" />
+    <stroke android:width="3dp" android:color="#e2bf87" /> <!-- Серая обводка -->
     <corners android:radius="40dp"/> <!-- Округление углов -->
 </shape>

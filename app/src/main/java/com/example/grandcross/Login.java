@@ -2,6 +2,7 @@ package com.example.grandcross;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -30,6 +31,11 @@ public class Login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.log));
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.log));
+        }
 
         loginEditText = findViewById(R.id.LoginId);
         passwordEditText = findViewById(R.id.PasswordId);

@@ -11,4 +11,6 @@
     <color name="dark">#000836</color>
     <color name="not_orange">#d9b778</color>
     <color name="light">#dfcdab</color>
+    <color name="log">#f4e4ca</color>
+
 </resources>
